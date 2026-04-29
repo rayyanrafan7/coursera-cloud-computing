@@ -1,11 +1,14 @@
-# coursera-cloud-computing
-Repository for Coursera Cloud Computing
+# Coursera Material
 
-## Name
+These folders are for the questions and answers for the Coursera 444/544 Cloud Computing Modules
 
-Hello this is Rayyan Rafan
+## Requirements
 
+You will need to install some packages in your Vagrant Box
 
-## Server 
+`sudo apt update`
+`sudo apt install python3-dev python3-setuptools python3-pip`
 
-Now pushing and pulling code to our production server
+Then to install the python required packages:
+
+`python3 -m pip install -r ./requirements.txt`
