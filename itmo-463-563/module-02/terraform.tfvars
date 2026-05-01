@@ -1,7 +1,7 @@
 # Add values
 # Find the Ubuntu server 22.04 AMI for your region at this URL
 # https://cloud-images.ubuntu.com/locator/ec2/
-imageid                = "ami-06b83968631539180"
+imageid                = "ami-076bd9cabcf9c4e85"
 # Use t2.micro for the AWS Free Tier
 instance-type          = "t2.micro"
 key-name               = "coursera-key"
