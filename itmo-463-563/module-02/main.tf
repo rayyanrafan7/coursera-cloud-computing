@@ -23,7 +23,7 @@ resource "aws_db_instance" "project_db" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
 ##############################################################################
 resource "aws_s3_bucket" "raw_bucket" {
-  bucket = 
+  bucket = var.raw-bucket
 
   tags = {
     Name        = var.tag-name
@@ -32,7 +32,7 @@ resource "aws_s3_bucket" "raw_bucket" {
 }
 
 resource "aws_s3_bucket" "finished_bucket" {
-  bucket = 
+  bucket = var.finished-bucket
 
   tags = {
     Name        = var.tag-name
