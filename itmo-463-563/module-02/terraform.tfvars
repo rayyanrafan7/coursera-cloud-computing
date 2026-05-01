@@ -3,7 +3,7 @@
 # https://cloud-images.ubuntu.com/locator/ec2/
 imageid                = "ami-076bd9cabcf9c4e85"
 # Use t2.micro for the AWS Free Tier
-instance-type          = "t2.micro"
+instance-type          = "t3.micro"
 key-name               = "coursera-key"
 vpc_security_group_ids = "sg-0edb42a6ab6921d03"
 cnt                    = 1
