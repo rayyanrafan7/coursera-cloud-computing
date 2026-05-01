@@ -163,6 +163,7 @@ resource "aws_autoscaling_group" "asg" {
   vpc_zone_identifier       = data.aws_subnets.public.ids
   launch_template {
     id = aws_launch_template.lt.id
+    version = "$Latest"
   }  
   
 }
