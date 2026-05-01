@@ -64,7 +64,7 @@ resource "aws_sns_topic" "user_updates" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sqs_queue
 ##############################################################################
 resource "aws_sqs_queue" "terraform_queue" {
-  name = 
+  name = var.sqs
 
 
   tags = {
