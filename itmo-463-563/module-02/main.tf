@@ -128,7 +128,7 @@ output "list-of-azs" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb
 ##############################################################################
 resource "aws_lb" "lb" {
-  name               = var.elb.name
+  name               = var.elb-name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.vpc_security_group_ids]
