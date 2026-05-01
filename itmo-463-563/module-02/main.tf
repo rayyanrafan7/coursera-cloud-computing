@@ -79,7 +79,7 @@ resource "aws_sqs_queue" "terraform_queue" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
 ##############################################################################
 resource "aws_launch_template" "lt" {
-   image_id = var.imageid
+   image_id = "ami-06b83968631539180"
    instance_type = var.instance-type
    key_name = var.key-name
    vpc_security_group_ids = [var.vpc_security_group_ids]
