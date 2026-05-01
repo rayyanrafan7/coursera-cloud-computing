@@ -79,10 +79,10 @@ resource "aws_sqs_queue" "terraform_queue" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template
 ##############################################################################
 resource "aws_launch_template" "lt" {
-   image_id = var.imageid
-   instance_type = var.instance-type
-   key_name = var.key-name
-   vpc_security_group_ids = [var.vpc_security_group_ids]
+   image_id = 
+   instance_type = 
+   key_name = 
+   vpc_security_group_ids = []
 
      tags = {
        Name = var.tag-name
@@ -128,7 +128,7 @@ output "list-of-azs" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb
 ##############################################################################
 resource "aws_lb" "lb" {
-  name               = var.elb-name
+  name               = var.elb.name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.vpc_security_group_ids]
@@ -152,16 +152,15 @@ output "url" {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group
 ##############################################################################
 resource "aws_autoscaling_group" "asg" {
-  name                      = 
-  max_size                  = 
-  min_size                  = 
+  name                      = var.asg-name
+  max_size                  = var.max
+  min_size                  = var.min
   health_check_grace_period = 300
   health_check_type         = "EC2"
-  desired_capacity          = 
+  desired_capacity          = var.desired
   force_delete              = true
-  target_group_arns         = []
-  availability_zones = 
-
+  target_group_arns         = [aws_lb_target_group.alb-lb-tg.arn]
+  vpc_zone_identifier       = data.aws_subnets.public.ids
   launch_template {
     id = aws_launch_template.lt.id
   }  
@@ -175,8 +174,8 @@ resource "aws_autoscaling_group" "asg" {
 resource "aws_autoscaling_attachment" "asg-attach" {
   # Wait for lb to be running before attaching the ASG
   depends_on = [ aws_lb.lb ]
-  autoscaling_group_name = 
-  lb_target_group_arn = 
+  autoscaling_group_name = aws_autoscaling_group.asg.id
+  lb_target_group_arn = aws_lb_target_group.alb-lb-tg.arn
 
 }
 ##############################################################################
@@ -185,22 +184,22 @@ resource "aws_autoscaling_attachment" "asg-attach" {
 resource "aws_lb_target_group" "alb-lb-tg" {
   # Depends on - wait for LB to exist
   depends_on = [ aws_lb.lb ]
-  name = 
+  name = var.tg-name
   target_type = "instance"
-  port = 
+  port = 80
   protocol = "HTTP"
-  vpc_id = 
+  vpc_id = data.aws_vpc.main.id
 }
 ##############################################################################
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener
 ##############################################################################
 resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = 
+  load_balancer_arn = aws_lb.lb.arn
   port = "80"
   protocol = "HTTP"
 
   default_action {
     type = "forward"
-    target_group_arn = 
+    target_group_arn = awa.s_lb_target_group.alb-lb-tg.arn
   }
 }
