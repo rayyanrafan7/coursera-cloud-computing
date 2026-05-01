@@ -11,10 +11,20 @@
 
 # Default types are stings, lists, and maps
 
-variable "imageid" {}
-variable "instance-type" {}
-variable "key-name" {}
-variable "vpc_security_group_ids" {}
+variable "imageid" {
+    type = string
+}
+variable "instance-type" {
+  type = string
+}
+
+variable "key-name" {
+  type = string
+}
+
+variable "vpc_security_group_ids" {
+  type = string
+}
 variable "cnt" {}
 variable "az" { default = ["us-east-2a", "us-east-2b", "us-east-2c"] }
 variable "tag-name" {}
