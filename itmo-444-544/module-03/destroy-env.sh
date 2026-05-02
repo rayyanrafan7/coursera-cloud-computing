@@ -1,101 +1,84 @@
 #!/bin/bash
 ##############################################################################
-# Module-03
-# This assignment requires you to destroy the Cloud assets you created
-# Remember to set you default output to text in the aws config command
+# Module-03 Destroy Script
+# This script deletes/terminates resources created for Module 3:
+# EC2 instances, target group, and load balancer.
 ##############################################################################
 
-echo "Beginning destroy script for module-03 assessment..."
+echo "Beginning destroy script for module-03..."
 
-# Collect Instance IDs
-# https://stackoverflow.com/questions/31744316/aws-cli-filter-or-logic
-INSTANCEIDS=$(aws ec2 describe-instances --output=text --query 'Reservations[*].Instances[*].InstanceId' --filter "Name=instance-state-name,Values=running,pending")
-echo "List of INSTANCEIDS to deregister..."
-if [ "$INSTANCEIDS" == "" ];
-  then
-  echo "There are no INSTANCEIDS to echo..."
-else
-  echo $INSTANCEIDS
-fi 
+TAGNAME="module3-tag"
+TARGETGROUPNAME="rr-tg"
+ELBNAME="rr-elb"
 
-echo "Finding TARGETARN..."
-# https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/describe-target-groups.html
-TARGETARN=
+echo "Finding running/pending EC2 instances with tag $TAGNAME..."
+INSTANCEIDS=$(aws ec2 describe-instances \
+  --output text \
+  --query 'Reservations[*].Instances[*].InstanceId' \
+  --filters "Name=instance-state-name,Values=running,pending" "Name=tag:Name,Values=$TAGNAME")
+
+echo $INSTANCEIDS
+
+echo "Finding target group ARN..."
+TARGETARN=$(aws elbv2 describe-target-groups \
+  --names $TARGETGROUPNAME \
+  --query 'TargetGroups[0].TargetGroupArn' \
+  --output text 2>/dev/null)
+
 echo $TARGETARN
 
-if [ "$INSTANCEIDS" != "" ]
-  then
-    echo '$INSTANCEIDS to be deregistered with the target group...'
-    # https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/register-targets.html
-    # Assignes the value of $EC2IDS and places each element (seperated by a space) into an array element
-    INSTANCEIDSARRAY=($INSTANCEIDS)
-    for INSTANCEID in ${INSTANCEIDSARRAY[@]};
-      do
-      echo "Deregistering target $INSTANCEID..."
-      aws elbv2 deregister-targets 
-      echo "Waiting for target $INSTANCEID to be deregistered..."
-      aws elbv2 wait target-deregistered
-      done
-  else
-    echo 'There are no running or pending values in $INSTANCEIDS to wait for...'
-fi 
+if [ "$TARGETARN" != "" ] && [ "$TARGETARN" != "None" ]
+then
+  echo "Deregistering targets from target group..."
+  INSTANCEIDSARRAY=($INSTANCEIDS)
 
-#https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/wait/instance-running.html
-echo "Now terminating the detached INSTANCEIDS..."
-if [ "$INSTANCEIDS" != "" ]
-  then
-    aws ec2 terminate-instances
-    echo "Waiting for all instances report state as TERMINATED..."
-    aws ec2 wait instance-terminated
-    echo "Finished destroying instances..."
-  else
-    echo 'There are no running values in $INSTANCEIDS to be terminated...'
-fi 
+  for INSTANCEID in ${INSTANCEIDSARRAY[@]};
+  do
+    echo "Deregistering $INSTANCEID..."
+    aws elbv2 deregister-targets \
+      --target-group-arn $TARGETARN \
+      --targets Id=$INSTANCEID
+  done
+else
+  echo "No target group found to deregister targets from."
+fi
 
-echo "Looking up ELB ARN..."
-# https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/describe-load-balancers.html
-ELBARN=
+if [ "$INSTANCEIDS" != "" ]
+then
+  echo "Terminating EC2 instances..."
+  aws ec2 terminate-instances --instance-ids $INSTANCEIDS
+
+  echo "Waiting for instances to terminate..."
+  aws ec2 wait instance-terminated --instance-ids $INSTANCEIDS
+else
+  echo "There are no running or pending instances to terminate..."
+fi
+
+echo "Finding load balancer ARN..."
+ELBARN=$(aws elbv2 describe-load-balancers \
+  --names $ELBNAME \
+  --query 'LoadBalancers[0].LoadBalancerArn' \
+  --output text 2>/dev/null)
+
 echo $ELBARN
 
-# Collect ListenerARN
-# https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/describe-listeners.html
- # Assignes the value of $EC2IDS and places each element (seperated by a space) into an array element
-    ELBARNSARRAY=($ELBARN)
-    for ELB in ${ELBARNSARRAY[@]};
-      do
-        echo "Deleting Listener..."
-        LISTENERARN=$(aws elbv2 describe-listeners --load-balancer-arn $ELB --query='Listeners[*].ListenerArn')
-        aws elbv2 delete-listener --listener-arn $LISTENERARN
-        echo "Listener deleted..."
-      done
+if [ "$ELBARN" != "" ] && [ "$ELBARN" != "None" ]
+then
+  echo "Deleting load balancer..."
+  aws elbv2 delete-load-balancer --load-balancer-arn $ELBARN
 
-
-if [ "$TARGETARN" = "" ];
-  then  
-  echo "No Target Groups to delete..."
+  echo "Waiting for load balancer to be deleted..."
+  aws elbv2 wait load-balancers-deleted --load-balancer-arns $ELBARN
 else
-  echo "Deleting target group $TARGETARN..."
-  # Assignes the value of $EC2IDS and places each element (seperated by a space) into an array element
-  TARGETARNSARRAY=($TARGETARN)
-    for TGARN in ${TARGETARNSARRAY[@]};
-      do
-        # https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/delete-target-group.html
-        aws elbv2 delete-target-group --target-group-arn $TGARN
-      done
+  echo "No load balancer found to delete."
 fi
 
-if [ "$ELBARN" = "" ];
-  then
-  echo "No ELBs to delete..."
+if [ "$TARGETARN" != "" ] && [ "$TARGETARN" != "None" ]
+then
+  echo "Deleting target group..."
+  aws elbv2 delete-target-group --target-group-arn $TARGETARN
 else
-  echo "Issuing Command to delete Load Balancer.."
-  # https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/delete-load-balancer.html
-  aws elbv2 delete-load-balancer 
-  echo "Load Balancer delete command has been issued..."
-
-  echo "Waiting for ELB to be deleted..."
-  # https://awscli.amazonaws.com/v2/documentation/api/2.0.34/reference/elbv2/wait/load-balancers-deleted.html#examples
-  aws elbv2 wait load-balancers-deleted
+  echo "No target group found to delete."
 fi
 
-
+echo "Finished destroying module-03 resources..."
