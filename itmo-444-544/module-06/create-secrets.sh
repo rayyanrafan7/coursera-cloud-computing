@@ -1,16 +1,33 @@
 #!/bin/bash
 
-#create secret
-echo "Creating AWS secret..."
+if [ $# = 0 ]
+then
+  echo "You don't have enough variables in your arguments.txt."
+  exit 1
+fi
 
-# Modify your maria.json 
+echo "Creating AWS secret: ${21}..."
 
-# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/secretsmanager/get-secret-value.html#examples
-aws secretsmanager create-secret --name ${21} --secret-string file://maria.json
+aws secretsmanager create-secret \
+  --name ${21} \
+  --secret-string file://maria.json
 
-SECRET_ID=$(aws secretsmanager list-secrets --filters Key=name,Values=${21} --query 'SecretList[*].ARN')
-USERVALUE=$(aws secretsmanager get-secret-value --secret-id $SECRET_ID --output=json | jq '.SecretString' | sed 's/[\\nt]//g' | sed 's/^"//g' | sed 's/"$//g' | jq '.user' | sed 's/"//g')
-PASSVALUE=$(aws secretsmanager get-secret-value --secret-id $SECRET_ID --output=json | jq '.SecretString' | sed 's/[\\nt]//g' | sed 's/^"//g' | sed 's/"$//g' | jq '.pass' | sed 's/"//g')
+echo "Secret created or already exists."
 
-echo $USERVALUE
-echo $PASSVALUE
+SECRET_ID=$(aws secretsmanager list-secrets \
+  --filters Key=name,Values=${21} \
+  --query 'SecretList[0].ARN' \
+  --output text)
+
+USERVALUE=$(aws secretsmanager get-secret-value \
+  --secret-id $SECRET_ID \
+  --query 'SecretString' \
+  --output text | jq -r '.user')
+
+PASSVALUE=$(aws secretsmanager get-secret-value \
+  --secret-id $SECRET_ID \
+  --query 'SecretString' \
+  --output text | jq -r '.pass')
+
+echo "Secret username: $USERVALUE"
+echo "Secret password retrieved."

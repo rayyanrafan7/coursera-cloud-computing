@@ -1,34 +1,75 @@
 #!/bin/bash
 
-# You have two RDS instances to delete -- also there is a read-replica that is attached to an RDS
+##############################################################################
+# Module 06 Destroy Script
+# Deletes RDS read replica, RDS primary database, and secret.
+##############################################################################
 
-# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/rds/describe-db-instances.html
-# Collect all database instance names into an array
-echo "********************************************************************"
-echo "Collecting RDs instance IDs into an array..."
-MYDBINSTANCE=$(aws rds describe-db-instances --query "" )
+echo "Beginning Module 6 destroy script..."
 
-if [ "$MYDBINSTANCE" == "" ]
+echo "Finding RDS read replicas..."
+REPLICAS=$(aws rds describe-db-instances \
+  --query 'DBInstances[?ReadReplicaSourceDBInstanceIdentifier!=`null`].DBInstanceIdentifier' \
+  --output text)
+
+if [ "$REPLICAS" != "" ]
 then
-  echo "There are no RDS Instances running to delete..."
-else
-    MYDBINSTANCE_ARRAY=($MYDBINSTANCE)
-    echo $MYDBINSTANCE
+  for DB in $REPLICAS
+  do
+    echo "Deleting read replica: $DB"
+    aws rds delete-db-instance \
+      --db-instance-identifier $DB \
+      --skip-final-snapshot \
+      --delete-automated-backups \
+      --no-cli-pager
 
-    for i in "${MYDBINSTANCE_ARRAY[@]}"
-    do
-    echo "********************************************************************"
-    echo "Found RDS Instance-ID: $i and deleting..."
-    echo "********************************************************************"
-    aws rds delete-db-instance --db-instance-identifier $i --skip-final-snapshot --delete-automated-backups --no-cli-pager
-    echo "********************************************************************"
-    echo "Waiting for instance-id: $i to finish deleting..."
-    echo "********************************************************************"
-    aws rds wait db-instance-deleted --db-instance-identifier $i --no-cli-pager
-    echo "********************************************************************"
-    echo "Deleted RDS instance-id: $i..."
-    echo "********************************************************************"
-    done
-echo "Module-06 deletion finished..."
-# End of main if
+    echo "Waiting for read replica $DB to delete..."
+    aws rds wait db-instance-deleted \
+      --db-instance-identifier $DB \
+      --no-cli-pager
+  done
+else
+  echo "No read replicas found."
 fi
+
+echo "Finding primary RDS instances..."
+PRIMARYDBS=$(aws rds describe-db-instances \
+  --query 'DBInstances[?ReadReplicaSourceDBInstanceIdentifier==`null`].DBInstanceIdentifier' \
+  --output text)
+
+if [ "$PRIMARYDBS" != "" ]
+then
+  for DB in $PRIMARYDBS
+  do
+    echo "Deleting primary RDS instance: $DB"
+    aws rds delete-db-instance \
+      --db-instance-identifier $DB \
+      --skip-final-snapshot \
+      --delete-automated-backups \
+      --no-cli-pager
+
+    echo "Waiting for primary RDS instance $DB to delete..."
+    aws rds wait db-instance-deleted \
+      --db-instance-identifier $DB \
+      --no-cli-pager
+  done
+else
+  echo "No primary RDS instances found."
+fi
+
+echo "Finding Module 6 secret..."
+SECRET_NAME=$(aws secretsmanager list-secrets \
+  --query 'SecretList[?Name==`rr-secret6`].Name | [0]' \
+  --output text)
+
+if [ "$SECRET_NAME" != "None" ] && [ "$SECRET_NAME" != "" ]
+then
+  echo "Deleting secret: $SECRET_NAME"
+  aws secretsmanager delete-secret \
+    --secret-id $SECRET_NAME \
+    --force-delete-without-recovery
+else
+  echo "No Module 6 secret found."
+fi
+
+echo "Module 6 deletion finished."
