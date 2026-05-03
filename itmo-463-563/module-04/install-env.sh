@@ -45,11 +45,12 @@ sudo -u ubuntu git clone git@github.com:jhajek/coursera-cloud-computing.git
 # Start the nodejs app where it is located via PM2
 # https://pm2.keymetrics.io/docs/usage/quick-start
 cd /home/ubuntu/coursera-cloud-computing/itmo-463-563/M4L8
-# Pull latest changes
-#sudo -u ubuntu git pull
+
+sudo npm install uuid
 
 sudo cp /home/ubuntu/coursera-cloud-computing/itmo-463-563/M4L8/default /etc/nginx/sites-available/default
 sudo systemctl daemon-reload
 sudo systemctl restart nginx
 
+sudo pm2 delete app || true
 sudo pm2 start app.js
