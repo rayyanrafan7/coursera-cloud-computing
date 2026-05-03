@@ -37,7 +37,7 @@ const s3 = new S3Client({ region: REGION });
 // I hardcoded my S3 bucket name, this you need to determine dynamically
 // Using the AWS JavaScript SDK
 ///////////////////////////////////////////////////////////////////////////
-var bucketName = 'jrh-raw-bucket';
+var bucketName = 'rayyan-raw-s3-bucket-module04';
 //listBuckets().then(result =>{bucketName = result;}).catch(err=>{console.error("listBuckets function call failed.")});
 	var upload = multer({
         storage: multerS3({
@@ -61,7 +61,7 @@ const listAndCacheBuckets = async () => {
 		const results = await client.send(command);
 		//console.log("List Buckets Results: ", results.Buckets[0].Name);
 		const params = {
-			Bucket: 'raw-jrh-mp1'
+			Bucket: 'rayyan-raw-s3-bucket-module04'
 		}
 		return params;
 } catch (err) {
