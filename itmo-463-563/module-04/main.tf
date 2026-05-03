@@ -251,6 +251,9 @@ resource "aws_launch_template" "lt" {
   key_name                             = var.key-name
   vpc_security_group_ids               = [aws_security_group.allow_http.id]
   # add aws_iam_instance_profile here
+  iam_instance_profile {
+  name = aws_iam_instance_profile.coursera_profile.name
+}
 
   monitoring {
     enabled = false
