@@ -48,7 +48,7 @@ cd /home/ubuntu/coursera-cloud-computing/itmo-463-563/module-05
 # Pull latest changes
 #sudo -u ubuntu git pull
 
-sudo cp /home/ubuntu/coursera-cloud-computing/itmo-463-563/module-05/default /etc/nginx/sites-available/defaultt
+sudo cp /home/ubuntu/coursera-cloud-computing/itmo-463-563/module-05/default /etc/nginx/sites-available/default
 sudo systemctl daemon-reload
 sudo systemctl restart nginx
 
