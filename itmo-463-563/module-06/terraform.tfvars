@@ -1,0 +1,20 @@
+# Add values
+# Use the AMI of the custom Ec2 image you previously created
+imageid                = "ami-09f21dfc5519a063f"
+instance-type          = "t3.micro"
+key-name               = "coursera-key"
+vpc_security_group_ids = ""
+tag-name               = "module-06"
+user-sns-topic         = "rayyan-topic-module06"
+elb-name               = "rayyan-elb-module06"
+tg-name                = "rayyan-tg-module06"
+asg-name               = "rayyan-asg-module06"
+desired                = 3
+min                    = 2
+max                    = 5
+number-of-azs          = 3
+region                 = "us-east-2"
+raw-s3-bucket          = "rayyan-raw-s3-bucket-module06"
+finished-s3-bucket     = "rayyan-finished-s3-bucket-module06"
+sqs-name               = "rayyan-sqs-module06"
+dynamodb-name          = "company"

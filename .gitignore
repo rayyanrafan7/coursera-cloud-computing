@@ -14,3 +14,18 @@ crash.log
 
 # For built boxes
 *.box
+
+# Terraform local files
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.tfstate
+**/*.tfstate.*
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+
+# Template zips
+**/*assessment-template-code.zip
