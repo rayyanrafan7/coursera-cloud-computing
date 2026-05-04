@@ -29,3 +29,14 @@ crash.log
 
 # Template zips
 **/*assessment-template-code.zip
+
+# Module 07 local generated files
+**/.terraform/
+**/.terraform.lock.hcl
+**/__pycache__/
+**/*.pyc
+**/*assessment-template-code.zip
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/*.tfstate
+**/*.tfstate.*
